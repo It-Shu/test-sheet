@@ -9,6 +9,6 @@ export const SheetApi = {
         );
     },
     getSheetData () {
-        return axios.get('')
+        return axios.get('https://sheet.best/api/sheets/dd881c59-7957-41f6-be73-d932f8fd8007')
     }
 }

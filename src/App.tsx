@@ -1,11 +1,13 @@
 import React, {useEffect, useState} from 'react';
 import './App.css';
 import {SheetApi} from "./api/sheet-api";
+import GoogleSheetTable from "./google-docs";
 
 function App() {
 
     const [docsText, setDocsText] = useState('')
     const [objects, setObjects] = useState<string[]>([])
+    const [sheetData, setSheetData] = useState([])
     const [isActive, setIsActive] = useState(false)
 
     const columnMap: { [key: string]: string } = {
@@ -49,12 +51,17 @@ function App() {
         console.log(results);
     }, [isActive])
 
+    useEffect(() => {
+        SheetApi.getSheetData().then(res => setSheetData(res.data))
+    }, [isActive])
 
+    // console.log(sheetData)
 
         return (
             <div className="App">
                 <button onClick={() => setIsActive(!isActive)}>Get</button>
                 <pre>{objects}</pre>
+                <GoogleSheetTable/>
             </div>
         );
     }
