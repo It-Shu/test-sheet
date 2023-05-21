@@ -1,9 +1,7 @@
 import React, {FC, useEffect, useState} from 'react';
 import PreviewPage from "./PreviewPage";
-import Modal from "./modal/Modal";
-import {useModal} from "./modal/hooks/useModal";
 import {ConvertResultType} from "./Form";
-import {Image, Col, Container, Row, Table} from "react-bootstrap";
+import NewDocument from "./NewDocument";
 
 type GoogleSheetDataTypes = {
     arrayOfDocTemplate: ConvertResultType[]
@@ -39,25 +37,6 @@ const GoogleSheetData: FC<GoogleSheetDataTypes> = (props) => {
     }, []);
 
     useEffect(() => {
-        // const fetchGoogleSheetData = async () => {
-        //     try {
-        //         const dataArr: MyData[] = [];
-        //         for (const item of props.arrayOfDocTemplate) {
-        //             const {list, column, line, endColumn, endLine} = item;
-        //             let sheetURL = `https://sheets.googleapis.com/v4/spreadsheets/${props.sheetUrlId}/values/${list}!${column}${line}`;
-        //
-        //             if (endColumn && endLine) {
-        //                 sheetURL += `:${endColumn}${endLine}`;
-        //             }
-        //
-        //             sheetURL += `?key=${apiKey}`;
-        //
-        //             // const sheetURL = `https://sheets.googleapis.com/v4/spreadsheets/${props.sheetUrlId}/values/${sheetName}!${cellRange}?key=${apiKey}`;
-        //             const response = await fetch(sheetURL);
-        //             const data = await response.json();
-        //             dataArr.push(data.values);
-        //             setSheetData(dataArr.flat());
-        //         }
         const fetchGoogleSheetData = async () => {
             try {
                 const firstDataArr: MyData[] = [];
@@ -117,7 +96,8 @@ const GoogleSheetData: FC<GoogleSheetDataTypes> = (props) => {
 
     return (
         <div>
-            <PreviewPage firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>
+            {/*<PreviewPage firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>*/}
+            <NewDocument firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>
         </div>
     );
 };
