@@ -1,6 +1,5 @@
 import React, {FC} from 'react';
 import {Col, Container, Image, Row, Table} from "react-bootstrap";
-import Modal from "./modal/Modal";
 import {MyData} from "./google-docs";
 
 type PreviewPageTypes = {
@@ -16,7 +15,7 @@ const PreviewPage: FC<PreviewPageTypes> = (props) => {
             if (item && typeof item[0] === 'string') {
                 if (item[0].startsWith('http')) {
                     const imageUrl = item[0];
-                    return <Image key={index} src={imageUrl} alt="Image" fluid />;
+                    return <Image key={index} src={imageUrl} alt="Image" fluid/>;
                 } else if (item[0] === '1411') {
                     projectNumber = item[0];
                 } else {
@@ -50,25 +49,9 @@ const PreviewPage: FC<PreviewPageTypes> = (props) => {
             <div>
                 <div>
                     <h2>Первая таблица</h2>
-                    <Table striped>
-                        <tbody>
-                        {props.secondSheetData[0].map((row, rowIndex) => (
-                            <tr key={rowIndex}>
-                                {row && Object.values(row).map((cell: string | null, cellIndex: number) => (
-                                    <td key={cellIndex}>{cell}</td>
-                                ))}
-                            </tr>
-                        ))}
-                        </tbody>
-                    </Table>
-                </div>
-
-                {props.secondSheetData[1] && (
-                    <div>
-                        <h2>Вторая таблица</h2>
                         <Table striped>
                             <tbody>
-                            {props.secondSheetData[1].map((row, rowIndex) => (
+                            {props.secondSheetData[0].map((row, rowIndex) => (
                                 <tr key={rowIndex}>
                                     {row && Object.values(row).map((cell: string | null, cellIndex: number) => (
                                         <td key={cellIndex}>{cell}</td>
@@ -77,17 +60,26 @@ const PreviewPage: FC<PreviewPageTypes> = (props) => {
                             ))}
                             </tbody>
                         </Table>
+                </div>
+
+                {props.secondSheetData[1] && (
+                    <div>
+                        <h2>Вторая таблица</h2>
+                            <Table striped>
+                                <tbody>
+                                {props.secondSheetData[1].map((row, rowIndex) => (
+                                    <tr key={rowIndex}>
+                                        {row && Object.values(row).map((cell: string | null, cellIndex: number) => (
+                                            <td key={cellIndex}>{cell}</td>
+                                        ))}
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </Table>
                     </div>
                 )}
             </div>
         </div>
-        // <>
-        //     <div>Документ №:</div>
-        //     <div>Выбранный сценарий:</div>
-        //     <div>Теперь вставляется картинка:</div>
-        //     <div>Формируем Таблицу 1:</div>
-        //     <div>Формируем Таблицу 2:</div>
-        // </>
     );
 };
 

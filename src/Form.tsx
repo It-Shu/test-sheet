@@ -4,7 +4,6 @@ import { Form as RBForm, Button } from 'react-bootstrap';
 import {SheetApi} from "./api/sheet-api";
 import Modal from "./modal/Modal";
 import {useModal} from "./modal/hooks/useModal";
-import PreviewPage from "./PreviewPage";
 import GoogleSheetData from "./google-docs"
 
 type FormType = {
@@ -65,7 +64,7 @@ const Form: React.FC<FormType> = (props) => {
                 fetchData();
             }
 
-    }, [docUrlID]) // todo
+    }, [docUrlID]) // todo нужно добавить валидацию для инпутов для проверки ссылки на sheet и docs
 
 
     useEffect(() => {
@@ -90,21 +89,6 @@ const Form: React.FC<FormType> = (props) => {
     const handleDocLinkChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setDocLink(event.target.value);
     };
-
-    // const convertDocsDataToParseSheet = () => {
-    //     const resultArrays = objects.map(result => result.split("-"));
-    //
-    //
-    //     const result = resultArrays.map(([list, column, line, endColumn, endLine]) => ({
-    //         list,
-    //         column: columnMap[column] || column,
-    //         line,
-    //         endColumn: columnMap[endColumn] || endColumn,
-    //         endLine,
-    //     }));
-    //
-    //     setConvertResult(result)
-    // }
 
     const extractIdFromLink = (link: string, regex: RegExp) => {
         const matches = link.match(regex);
@@ -154,6 +138,7 @@ const Form: React.FC<FormType> = (props) => {
                 <Button variant="light" onClick={handleDownloadClick}>
                     Получить файл
                 </Button>
+
             </div>
         </div>
     );
