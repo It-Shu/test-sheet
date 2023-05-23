@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
     Document,
     HeadingLevel,
@@ -10,24 +10,29 @@ import {
     TableRow,
     TextRun,
 } from 'docx';
-import { MyData } from './google-docs';
-import { saveAs } from 'file-saver';
-import axios from 'axios';
+import {SheetDataType} from './GoogleSheetData';
+import {saveAs} from 'file-saver';
+import {Button} from "react-bootstrap";
+import {SheetApi} from "./api/sheet-api";
+import {useDocNumberFinder} from "./hooks/useDocNumberFinder";
+import {useFindImageLink} from "./hooks/useFindImageLink";
 
 type NewDocumentProps = {
-    firstSheetData: MyData[];
-    secondSheetData: MyData[];
+    firstSheetData: SheetDataType[];
+    secondSheetData: SheetDataType[];
 };
 
-const NewDocument: React.FC<NewDocumentProps> = (props) => {
+const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
     const [imageData, setImageData] = useState<Uint8Array | undefined>(undefined);
+
+    const {imageLink} = useFindImageLink(props.firstSheetData)
+    const {documentNumber} = useDocNumberFinder(props.firstSheetData)
 
     useEffect(() => {
         const getImage = async () => {
-            const imageLink = findImageLink(props.firstSheetData);
             if (imageLink) {
                 try {
-                    const response = await axios.get(imageLink, { responseType: 'arraybuffer' });
+                    const response = await SheetApi.getImageLink(imageLink);
                     const imageArrayBuffer = new Uint8Array(response.data);
                     setImageData(imageArrayBuffer);
                 } catch (error) {
@@ -37,59 +42,34 @@ const NewDocument: React.FC<NewDocumentProps> = (props) => {
         };
 
         getImage();
-    }, [props.firstSheetData]);
 
-    const findImageLink = (data: MyData[]): string | undefined => {
-        for (const row of data) {
-            if (Array.isArray(row)) {
-                for (const cell of row) {
-                    if (typeof cell === 'string' && cell.startsWith('http')) {
-                        return cell;
-                    }
-                }
-            }
-        }
-        return undefined;
-    };
+    }, [imageLink]);
 
-    const generateTable = (data: MyData): Table => {
-        const rows = data.map((row) => {
-            if (Array.isArray(row)) {
-                const cells = row.map((cell: string | null) => {
-                    const cellText = cell ? cell : '';
-                    return new TableCell({
-                        children: [new Paragraph({ text: cellText })],
-                        columnSpan: 1,
-                        rowSpan: 1,
-                    });
-                });
 
-                return new TableRow({
-                    children: cells,
-                });
-            }
-
-            return null;
-        }).filter(Boolean) as TableRow[];
-
-        return new Table({
-            rows,
-        });
-    };
 
     const generateChildren = (): (Paragraph | Table)[] => {
         const children: (Paragraph | Table)[] = [];
 
-        const numberIndex = props.firstSheetData.findIndex((row) => row.includes('1411'));
-    // todo 1411 может измениться на любое другое число , нужно вставлять только то что в данных
-        if (numberIndex !== -1) {
+        if (documentNumber) {
             const numberParagraph = new Paragraph({
-                children: [
-                    new TextRun({ text: 'Номер документа: ', bold: true }),
-                    new TextRun({ text: '1411', bold: true }),
-                ],
+                children: [new TextRun({text: 'Номер документа: ', bold: true}), new TextRun({
+                    text: documentNumber,
+                    bold: true
+                })],
             });
             children.push(numberParagraph);
+        }
+
+        for (const row of props.firstSheetData) {
+            if (Array.isArray(row)) {
+                const data = row.filter((cell) => typeof cell === 'string' && !cell.startsWith('http') && cell !== documentNumber);
+                if (data.length > 0) {
+                    const paragraph = new Paragraph({
+                        text: data.join(', '),
+                    });
+                    children.push(paragraph);
+                }
+            }
         }
 
         if (imageData) {
@@ -107,18 +87,11 @@ const NewDocument: React.FC<NewDocumentProps> = (props) => {
             children.push(imageParagraph);
         }
 
-        const filteredData = props.firstSheetData.filter((row) => {
-            return !row.includes('1411') && !row.some((cell) => typeof cell === 'string' && cell.startsWith('http'));
-        });
-        console.log('filteredData',filteredData.flat())
-        // todo filteredData может измениться на любое другое значение , нужно вставлять только то что в данных
-
-
         children.push(
             new Paragraph({
                 text: 'Первая таблица',
                 heading: HeadingLevel.HEADING_1,
-                spacing: { before: 200, after: 200 },
+                spacing: {before: 200, after: 200},
             })
         );
 
@@ -129,7 +102,7 @@ const NewDocument: React.FC<NewDocumentProps> = (props) => {
             new Paragraph({
                 text: 'Вторая таблица',
                 heading: HeadingLevel.HEADING_1,
-                spacing: { before: 200, after: 200 },
+                spacing: {before: 200, after: 200},
             })
         );
 
@@ -138,30 +111,58 @@ const NewDocument: React.FC<NewDocumentProps> = (props) => {
 
         return children;
     };
+    const generateTable = (data: SheetDataType): Table => {
+        const rows = data
+            .map((row) => {
+                if (Array.isArray(row)) {
+                    const cells = row.map((cell: string | null) => {
+                        const cellText = cell ? cell : '';
+                        return new TableCell({
+                            children: [new Paragraph({text: cellText})],
+                            columnSpan: 1,
+                            rowSpan: 1,
+                        });
+                    });
 
+                    return new TableRow({
+                        children: cells,
+                    });
+                }
 
+                return null;
+            })
+            .filter(Boolean) as TableRow[];
 
-
-    const handleExport = () => {
-        const doc = new Document({
-            sections: [
-                {
-                    properties: {},
-                    children: generateChildren(),
-                },
-            ],
-        });
-
-        Packer.toBlob(doc).then((blob) => {
-            saveAs(blob, 'NewDocument.docx');
+        return new Table({
+            rows,
         });
     };
 
+    const handleExport = () => {
+        if (imageData) {
+            const doc = new Document({
+                sections: [
+                    {
+                        properties: {},
+                        children: generateChildren(),
+                    },
+                ],
+            });
+
+            Packer.toBlob(doc).then((blob) => {
+                saveAs(blob, 'NewDocument.docx');
+            });
+        }
+    };
+
+
     return (
         <div>
-            <button onClick={handleExport}>Export DOCX</button>
+            <Button variant="light" onClick={handleExport} className="mb-2">
+                Загрузить файл
+            </Button>
         </div>
     );
-};
+});
 
 export default NewDocument;

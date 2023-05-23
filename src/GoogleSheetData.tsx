@@ -1,46 +1,51 @@
 import React, {FC, useEffect, useState} from 'react';
-import PreviewPage from "./PreviewPage";
 import {ConvertResultType} from "./Form";
 import NewDocument from "./NewDocument";
+import {Button} from "react-bootstrap";
+import MyModal from "./ModalWindow";
+import PreviewPage from "./PreviewPage";
 
 type GoogleSheetDataTypes = {
+    sheetLink: string
     arrayOfDocTemplate: ConvertResultType[]
     sheetUrlId: string | null
 }
 
-export type MyData = Array<string | null>;
+export type SheetDataType = Array<string | null>;
 
-const GoogleSheetData: FC<GoogleSheetDataTypes> = (props) => {
+const GoogleSheetData: FC<GoogleSheetDataTypes> = React.memo((props) => {
 
-    const [firstSheetData, setFirstSheetData] = useState<MyData[]>([])
-    const [secondSheetData, setSecondSheetData] = useState<MyData[]>([])
+    const [firstSheetData, setFirstSheetData] = useState<SheetDataType[]>([])
+    const [secondSheetData, setSecondSheetData] = useState<SheetDataType[]>([])
 
-    const apiKey = 'AIzaSyCFY3hmuLkD-Tzc-9MLCam0f3RzZ0r9l0E'; // Replace with your actual API key
-
+    const apiKey = 'AIzaSyCFY3hmuLkD-Tzc-9MLCam0f3RzZ0r9l0E';
+    const [showModalWindow, setShowModalWindow] = useState(false);
 
     const [imageUrl, setImageUrl] = useState<string | null>(null);
+    const [errorImageUrl, setErrorImageUrl] = useState<string | null>(null)
+    const [errorSheet, setErrorSheet] = useState<string | null>(null)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch('https://docs.google.com/spreadsheets/d/1WXp4jZQYbV7a8TG_Merpc6dQ-YuZbYxZC_In6ny5Qkg/edit#gid=256578302');
+                const response = await fetch(props.sheetLink);
                 const htmlString = await response.text();
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlString, 'text/html');
                 let imgElements = doc.getElementsByTagName('img')[0].getAttribute('src');
                 setImageUrl(imgElements);
             } catch (error) {
-                console.error('Error fetching or parsing the HTML:', error);
+                setErrorImageUrl('Ошибка поиска сылки на картинку')
             }
         };
         fetchData();
-    }, []);
+    }, [props.sheetLink]);
 
     useEffect(() => {
         const fetchGoogleSheetData = async () => {
             try {
-                const firstDataArr: MyData[] = [];
-                const secondDataArr: MyData[] = [];
+                const firstDataArr: SheetDataType[] = [];
+                const secondDataArr: SheetDataType[] = [];
 
                 for (const item of props.arrayOfDocTemplate) {
                     const {list, column, line} = item;
@@ -63,43 +68,49 @@ const GoogleSheetData: FC<GoogleSheetDataTypes> = (props) => {
                     }
                 }
 
-                const flattenedData: MyData[] = firstDataArr.reduce((acc: MyData[], item: MyData) => {
+                const flattenedData: SheetDataType[] = firstDataArr.reduce((acc: SheetDataType[], item: SheetDataType) => {
                     return acc.concat(item);
                 }, []);
 
                 setFirstSheetData(flattenedData.slice(0, -2));
                 setSecondSheetData(secondDataArr);
             } catch (error) {
-                console.error('Произошла ошибка:');
+                setErrorSheet('Ошибка Поиска данных в Таблице')
             }
         };
         fetchGoogleSheetData()
 
-    }, []);
-
-    // todo
+    }, [props.sheetUrlId]);
 
     let nullIndex = firstSheetData.findIndex(item => item === undefined);
 
-    // Заменяем undefined на img link
     if (imageUrl && nullIndex >= 0) {
         firstSheetData[nullIndex] = [imageUrl]
     }
 
     if (firstSheetData.length === 0 || secondSheetData.length === 0) {
-        return <div>Loading...</div>
+        return <div className="d-flex align-self-end m-5 flex-lg-row flex-md-row flex-sm-row flex-column">
+            <Button variant="light" className="me-sm-3 me-md-3 me-lg-3 mb-2">
+                Предварительный просмотр
+            </Button>
+            <Button variant="light" className="mb-2">
+                Обработка...
+            </Button>
+        </div>
     }
 
-    console.log('firstSheetData', firstSheetData)
-    console.log('secondSheetData', secondSheetData)
-    // todo
+    const handleClose = () => setShowModalWindow(false);
+    const handleShow = () => setShowModalWindow(true);
 
     return (
-        <div>
-            {/*<PreviewPage firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>*/}
+        <div className="d-flex align-self-end m-5 flex-lg-row flex-md-row flex-sm-row flex-column">
+            <MyModal show={showModalWindow} handleShow={handleShow} handleClose={handleClose}
+                     content={<PreviewPage firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>}/>
+            {!imageUrl && errorImageUrl}
+            {!props.sheetUrlId && errorSheet}
             <NewDocument firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>
         </div>
     );
-};
+});
 
 export default GoogleSheetData;

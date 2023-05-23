@@ -1,25 +1,29 @@
 import React, {FC} from 'react';
-import {Col, Container, Image, Row, Table} from "react-bootstrap";
-import {MyData} from "./google-docs";
+import {Col, Container, Row, Table} from "react-bootstrap";
+import {SheetDataType} from "./GoogleSheetData";
+import {useFindImageLink} from "./hooks/useFindImageLink";
+import {useDocNumberFinder} from "./hooks/useDocNumberFinder";
 
 type PreviewPageTypes = {
-    secondSheetData: MyData[]
-    firstSheetData: MyData[]
+    secondSheetData: SheetDataType[]
+    firstSheetData: SheetDataType[]
 }
 
-const PreviewPage: FC<PreviewPageTypes> = (props) => {
+const PreviewPage: FC<PreviewPageTypes> = React.memo((props) => {
 
-    const renderElementsFromData = (data: MyData[]) => {
+    const {imageLink} = useFindImageLink(props.firstSheetData)
+    const {documentNumber} = useDocNumberFinder(props.firstSheetData)
+
+    const renderElementsFromData = (data: SheetDataType[]) => {
         let projectNumber = '';
         const elements = data.map((item, index) => {
             if (item && typeof item[0] === 'string') {
                 if (item[0].startsWith('http')) {
-                    const imageUrl = item[0];
-                    return <Image key={index} src={imageUrl} alt="Image" fluid/>;
-                } else if (item[0] === '1411') {
+                    return null;
+                } else if (item[0] === documentNumber) {
                     projectNumber = item[0];
                 } else {
-                    const content = item[0] || ''; // Обработка null значений
+                    const content = item[0] || '';
                     return <div key={index}>{content}</div>;
                 }
             }
@@ -27,7 +31,7 @@ const PreviewPage: FC<PreviewPageTypes> = (props) => {
         });
 
         if (projectNumber) {
-            elements.unshift(<div key="projectNumber">Project №: {projectNumber}</div>);
+            elements.unshift(<div key="projectNumber">Номер Документа: {projectNumber}</div>);
         }
 
         return (
@@ -41,17 +45,30 @@ const PreviewPage: FC<PreviewPageTypes> = (props) => {
 
     return (
         <div>
-            <h1>Данные таблицы:</h1>
-
-            <div>
-                {renderElementsFromData(props.firstSheetData)}
-            </div>
+            <div>{renderElementsFromData(props.firstSheetData)}</div>
+            <img src={imageLink} alt="image"/>
             <div>
                 <div>
                     <h2>Первая таблица</h2>
+                    <Table striped>
+                        <tbody>
+                        {props.secondSheetData[0].map((row, rowIndex) => (
+                            <tr key={rowIndex}>
+                                {row && Object.values(row).map((cell: string | null, cellIndex: number) => (
+                                    <td key={cellIndex}>{cell}</td>
+                                ))}
+                            </tr>
+                        ))}
+                        </tbody>
+                    </Table>
+                </div>
+
+                {props.secondSheetData[1] && (
+                    <div>
+                        <h2>Вторая таблица</h2>
                         <Table striped>
                             <tbody>
-                            {props.secondSheetData[0].map((row, rowIndex) => (
+                            {props.secondSheetData[1].map((row, rowIndex) => (
                                 <tr key={rowIndex}>
                                     {row && Object.values(row).map((cell: string | null, cellIndex: number) => (
                                         <td key={cellIndex}>{cell}</td>
@@ -60,27 +77,11 @@ const PreviewPage: FC<PreviewPageTypes> = (props) => {
                             ))}
                             </tbody>
                         </Table>
-                </div>
-
-                {props.secondSheetData[1] && (
-                    <div>
-                        <h2>Вторая таблица</h2>
-                            <Table striped>
-                                <tbody>
-                                {props.secondSheetData[1].map((row, rowIndex) => (
-                                    <tr key={rowIndex}>
-                                        {row && Object.values(row).map((cell: string | null, cellIndex: number) => (
-                                            <td key={cellIndex}>{cell}</td>
-                                        ))}
-                                    </tr>
-                                ))}
-                                </tbody>
-                            </Table>
                     </div>
                 )}
             </div>
         </div>
     );
-};
+});
 
 export default PreviewPage;
