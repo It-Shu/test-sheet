@@ -7,5 +7,8 @@ export const SheetApi = {
     },
     getSheetData (url: string) {
         return axios.get(url);
+    },
+    getImageLink (url: string) {
+        return axios.get(url, { responseType: 'arraybuffer' });
     }
 }

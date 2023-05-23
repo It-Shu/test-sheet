@@ -2,15 +2,17 @@ import React, {FC, useEffect, useState} from 'react';
 import PreviewPage from "./PreviewPage";
 import {ConvertResultType} from "./Form";
 import NewDocument from "./NewDocument";
+import {Button} from "react-bootstrap";
 
 type GoogleSheetDataTypes = {
+    handleDownloadClick: () => void
     arrayOfDocTemplate: ConvertResultType[]
     sheetUrlId: string | null
 }
 
 export type MyData = Array<string | null>;
 
-const GoogleSheetData: FC<GoogleSheetDataTypes> = (props) => {
+const GoogleSheetData: FC<GoogleSheetDataTypes> = React.memo((props) => {
 
     const [firstSheetData, setFirstSheetData] = useState<MyData[]>([])
     const [secondSheetData, setSecondSheetData] = useState<MyData[]>([])
@@ -87,7 +89,9 @@ const GoogleSheetData: FC<GoogleSheetDataTypes> = (props) => {
     }
 
     if (firstSheetData.length === 0 || secondSheetData.length === 0) {
-        return <div>Loading...</div>
+        return  <Button variant="light" >
+            Обработка...
+        </Button>
     }
 
     console.log('firstSheetData', firstSheetData)
@@ -97,9 +101,9 @@ const GoogleSheetData: FC<GoogleSheetDataTypes> = (props) => {
     return (
         <div>
             {/*<PreviewPage firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>*/}
-            <NewDocument firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>
+            <NewDocument handleDownloadClick={props.handleDownloadClick} firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>
         </div>
     );
-};
+});
 
 export default GoogleSheetData;
