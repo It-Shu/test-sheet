@@ -10,34 +10,23 @@ import {
     TableRow,
     TextRun,
 } from 'docx';
-import {MyData} from './GoogleSheetData';
+import {SheetDataType} from './GoogleSheetData';
 import {saveAs} from 'file-saver';
 import {Button} from "react-bootstrap";
 import {SheetApi} from "./api/sheet-api";
+import {useDocNumberFinder} from "./hooks/useDocNumberFinder";
+import {useFindImageLink} from "./hooks/useFindImageLink";
 
 type NewDocumentProps = {
-    firstSheetData: MyData[];
-    secondSheetData: MyData[];
+    firstSheetData: SheetDataType[];
+    secondSheetData: SheetDataType[];
 };
 
 const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
     const [imageData, setImageData] = useState<Uint8Array | undefined>(undefined);
-    const [documentNumber, setDocumentNumber] = useState<string | undefined>(undefined);
 
-
-    const findImageLink = (data: MyData[]): string | undefined => {
-        for (const row of data) {
-            if (Array.isArray(row)) {
-                for (const cell of row) {
-                    if (typeof cell === 'string' && cell.startsWith('http')) {
-                        return cell;
-                    }
-                }
-            }
-        }
-        return undefined;
-    };
-    const imageLink = findImageLink(props.firstSheetData);
+    const {imageLink} = useFindImageLink(props.firstSheetData)
+    const {documentNumber} = useDocNumberFinder(props.firstSheetData)
 
     useEffect(() => {
         const getImage = async () => {
@@ -54,19 +43,9 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
 
         getImage();
 
-        const numberRow = props.firstSheetData.find((row) => {
-            return row.some((cell) => typeof cell === 'string' && !isNaN(Number(cell)));
-        });
-
-        if (numberRow) {
-            const number = numberRow.find((cell) => typeof cell === 'string' && !isNaN(Number(cell)));
-            if (number) {
-                setDocumentNumber(number.toString());
-            }
-        }
     }, [imageLink]);
 
-// todo
+
 
     const generateChildren = (): (Paragraph | Table)[] => {
         const children: (Paragraph | Table)[] = [];
@@ -94,7 +73,6 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
         }
 
         if (imageData) {
-            debugger
             const imageParagraph = new Paragraph({
                 children: [
                     new ImageRun({
@@ -133,7 +111,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
 
         return children;
     };
-    const generateTable = (data: MyData): Table => {
+    const generateTable = (data: SheetDataType): Table => {
         const rows = data
             .map((row) => {
                 if (Array.isArray(row)) {
@@ -180,7 +158,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
 
     return (
         <div>
-            <Button variant="light" onClick={handleExport}>
+            <Button variant="light" onClick={handleExport} className="mb-2">
                 Загрузить файл
             </Button>
         </div>

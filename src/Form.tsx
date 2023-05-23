@@ -3,45 +3,40 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import {Form as RBForm, Button} from 'react-bootstrap';
 import {SheetApi} from "./api/sheet-api";
 import GoogleSheetData from "./GoogleSheetData"
-import MyModal from "./ModalWindow";
-
-type FormType = {
-    // sheetLink: string
-}
 
 export type ConvertResultType = {
     list: string,
     column: string,
     line: string,
-    endColumn: string | undefined,
-    endLine: string | undefined
+    endColumn: string | null,
+    endLine: string | null
 }
 
-const Form: React.FC<FormType> = (props) => {
+const columnMap: { [key: string]: string } = {
+    "1": "A",
+    "2": "B",
+    "3": "C",
+    "4": "D",
+    "5": "E",
+    "6": "F",
+    "7": "G",
+    "8": "H",
+    "9": "I",
+    "10": "J",
+};
+
+const Form: React.FC = React.memo(() => {
 
     const [sheetLink, setSheetLink] = useState('');
     const [docLink, setDocLink] = useState('');
 
-    const [objects, setObjects] = useState<string[]>([])
+    const [arrayOfTemplateVariables, setArrayOfTemplateVariables] = useState<string[]>([])
 
     const [docUrlID, setDocUrlID] = useState<string | null>('')
     const [sheetUrlID, setSheetUrlID] = useState<string | null>('')
 
-    const [convertResult, setConvertResult] = useState<ConvertResultType[]>([])
-
-
-    const columnMap: { [key: string]: string } = {
-        "1": "A",
-        "2": "B",
-        "3": "C",
-        "4": "D",
-        "5": "E",
-        "6": "F",
-        "7": "G",
-        "8": "H",
-        "9": "I",
-        "10": "J",
-    };
+    const [finalTemplateArr, setFinalTemplateArr] = useState<ConvertResultType[]>([])
+    const [errorDoc, setErrorDoc] = useState<string | null>(null)
 
     useEffect(() => {
         const fetchData = async () => {
@@ -51,10 +46,10 @@ const Form: React.FC<FormType> = (props) => {
                 const matches = response.data.match(regex);
 
                 if (matches !== null) {
-                    setObjects(matches.map((match: string) => match.substring(1, match.length - 1)));
+                    setArrayOfTemplateVariables(matches.map((match: string) => match.substring(1, match.length - 1)));
                 }
             } catch (error) {
-                console.error('Error occurred while fetching data:', error);
+                setErrorDoc('Ошибка обработки документа')
             }
         };
 
@@ -62,14 +57,13 @@ const Form: React.FC<FormType> = (props) => {
             fetchData();
         }
 
-    }, [docUrlID]) // todo
-
+    }, [docUrlID])
 
     useEffect(() => {
-        const resultArrays = objects.map(result => result.split("-"));
 
+        const arraysOfTemplates = arrayOfTemplateVariables.map(result => result.split("-"));
 
-        const result = resultArrays.map(([list, column, line, endColumn, endLine]) => ({
+        const result = arraysOfTemplates.map(([list, column, line, endColumn, endLine]) => ({
             list,
             column: columnMap[column] || column,
             line,
@@ -77,10 +71,12 @@ const Form: React.FC<FormType> = (props) => {
             endLine,
         }));
 
-        setConvertResult(result)
-    }, [objects])
+        setFinalTemplateArr(result)
+
+    }, [arrayOfTemplateVariables])
 
     useEffect(() => {
+
         const extractIdFromLink = (link: string, regex: RegExp) => {
             const matches = link.match(regex);
             return matches ? matches[1] : null;
@@ -111,32 +107,33 @@ const Form: React.FC<FormType> = (props) => {
     };
 
 
-
     return (
-        <div>
-            <RBForm>
-                <RBForm.Group>
-                    <RBForm.Label>Ссылка на Google Sheets:</RBForm.Label>
+        <div className="d-flex flex-column justify-content-center align-items-center vh-100">
+            <RBForm className="w-75">
+                <RBForm.Group className="d-flex flex-column align-items-center">
+                    <RBForm.Label className="text-center">Ссылка на Google Sheets:</RBForm.Label>
                     <RBForm.Control type="text" value={sheetLink} onChange={handleSheetLinkChange}/>
                 </RBForm.Group>
-                <RBForm.Group>
-                    <RBForm.Label>Ссылка на Google Docs:</RBForm.Label>
+                <RBForm.Group className="d-flex flex-column align-items-center">
+                    <RBForm.Label className="text-center">Ссылка на Google Docs:</RBForm.Label>
                     <RBForm.Control type="text" value={docLink} onChange={handleDocLinkChange}/>
                 </RBForm.Group>
             </RBForm>
-            <div className="d-flex justify-content-end mt-4 m-5">
-                {convertResult.length === 0 && <Button variant="light">
-                    Предварительный просмотр
-                </Button>}
-                {convertResult.length === 0 && <Button variant="light">
-                    Заполните поля
-                </Button>
-                }
-                {convertResult.length > 0 && sheetUrlID &&
-                <GoogleSheetData sheetUrlId={sheetUrlID} arrayOfDocTemplate={convertResult}/>}
+            {!arrayOfTemplateVariables && errorDoc}
+            <div className="d-flex align-self-end m-5 flex-lg-row flex-md-row flex-sm-row flex-column">
+                {finalTemplateArr.length === 0 && <div>
+                    <Button variant="light" className="me-sm-3 me-md-3 me-lg-3 mb-2">
+                        Предварительный просмотр
+                    </Button>
+                    <Button variant="light" className="mb-2">
+                        Заполните поля
+                    </Button>
+                </div>}
+                {finalTemplateArr.length > 0 && sheetUrlID &&
+                <GoogleSheetData sheetLink={sheetLink} sheetUrlId={sheetUrlID} arrayOfDocTemplate={finalTemplateArr}/>}
             </div>
         </div>
     );
-};
+});
 
 export default Form;

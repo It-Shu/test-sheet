@@ -12,7 +12,7 @@ const ModalWindow: React.FC<ModalWindowProps> = (props) => {
 
     return (
         <>
-            <Button variant="light" onClick={props.handleShow}>
+            <Button variant="light" onClick={props.handleShow} className="me-sm-3 me-md-3 me-lg-3 mb-2">
                 Предварительный просмотр
             </Button>
 
