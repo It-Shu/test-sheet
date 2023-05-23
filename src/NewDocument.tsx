@@ -10,13 +10,12 @@ import {
     TableRow,
     TextRun,
 } from 'docx';
-import {MyData} from './google-docs';
+import {MyData} from './GoogleSheetData';
 import {saveAs} from 'file-saver';
-import axios from 'axios';
 import {Button} from "react-bootstrap";
+import {SheetApi} from "./api/sheet-api";
 
 type NewDocumentProps = {
-    handleDownloadClick: () => void
     firstSheetData: MyData[];
     secondSheetData: MyData[];
 };
@@ -41,19 +40,19 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
     const imageLink = findImageLink(props.firstSheetData);
 
     useEffect(() => {
-            const getImage = async () => {
-                if (imageLink) {
-                    try {
-                        const response = await axios.get(imageLink, { responseType: 'arraybuffer' });
-                        const imageArrayBuffer = new Uint8Array(response.data);
-                        setImageData(imageArrayBuffer);
-                    } catch (error) {
-                        console.error('Failed to load image:', error);
-                    }
+        const getImage = async () => {
+            if (imageLink) {
+                try {
+                    const response = await SheetApi.getImageLink(imageLink);
+                    const imageArrayBuffer = new Uint8Array(response.data);
+                    setImageData(imageArrayBuffer);
+                } catch (error) {
+                    console.error('Failed to load image:', error);
                 }
-            };
+            }
+        };
 
-            getImage();
+        getImage();
 
         const numberRow = props.firstSheetData.find((row) => {
             return row.some((cell) => typeof cell === 'string' && !isNaN(Number(cell)));
@@ -82,19 +81,17 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
             children.push(numberParagraph);
         }
 
-        // Добавление дополнительных данных
         for (const row of props.firstSheetData) {
             if (Array.isArray(row)) {
                 const data = row.filter((cell) => typeof cell === 'string' && !cell.startsWith('http') && cell !== documentNumber);
                 if (data.length > 0) {
                     const paragraph = new Paragraph({
-                        text: data.join(', '), // Пример: объединение данных строки через запятую
+                        text: data.join(', '),
                     });
                     children.push(paragraph);
                 }
             }
         }
-        console.log('129', imageData)
 
         if (imageData) {
             debugger
@@ -165,7 +162,6 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
 
     const handleExport = () => {
         if (imageData) {
-            props.handleDownloadClick()
             const doc = new Document({
                 sections: [
                     {

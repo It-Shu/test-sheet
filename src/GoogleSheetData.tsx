@@ -1,11 +1,11 @@
 import React, {FC, useEffect, useState} from 'react';
-import PreviewPage from "./PreviewPage";
 import {ConvertResultType} from "./Form";
 import NewDocument from "./NewDocument";
 import {Button} from "react-bootstrap";
+import MyModal from "./ModalWindow";
+import PreviewPage from "./PreviewPage";
 
 type GoogleSheetDataTypes = {
-    handleDownloadClick: () => void
     arrayOfDocTemplate: ConvertResultType[]
     sheetUrlId: string | null
 }
@@ -18,7 +18,7 @@ const GoogleSheetData: FC<GoogleSheetDataTypes> = React.memo((props) => {
     const [secondSheetData, setSecondSheetData] = useState<MyData[]>([])
 
     const apiKey = 'AIzaSyCFY3hmuLkD-Tzc-9MLCam0f3RzZ0r9l0E'; // Replace with your actual API key
-
+    const [show, setShow] = useState(false);
 
     const [imageUrl, setImageUrl] = useState<string | null>(null);
 
@@ -89,19 +89,20 @@ const GoogleSheetData: FC<GoogleSheetDataTypes> = React.memo((props) => {
     }
 
     if (firstSheetData.length === 0 || secondSheetData.length === 0) {
-        return  <Button variant="light" >
-            Обработка...
-        </Button>
+        return  <>
+            <Button variant="light" >
+                Обработка...
+            </Button>
+        </>
     }
 
-    console.log('firstSheetData', firstSheetData)
-    console.log('secondSheetData', secondSheetData)
-    // todo
+    const handleClose = () => setShow(false);
+    const handleShow = () => setShow(true);
 
     return (
         <div>
-            {/*<PreviewPage firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>*/}
-            <NewDocument handleDownloadClick={props.handleDownloadClick} firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>
+            <MyModal show={show} handleShow={handleShow} handleClose={handleClose} content={<PreviewPage firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>}/>
+            <NewDocument firstSheetData={firstSheetData} secondSheetData={secondSheetData}/>
         </div>
     );
 });

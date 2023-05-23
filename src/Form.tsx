@@ -1,10 +1,9 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import {Form as RBForm, Button} from 'react-bootstrap';
 import {SheetApi} from "./api/sheet-api";
-import Modal from "./modal/Modal";
-import {useModal} from "./modal/hooks/useModal";
-import GoogleSheetData from "./google-docs"
+import GoogleSheetData from "./GoogleSheetData"
+import MyModal from "./ModalWindow";
 
 type FormType = {
     // sheetLink: string
@@ -29,7 +28,6 @@ const Form: React.FC<FormType> = (props) => {
     const [sheetUrlID, setSheetUrlID] = useState<string | null>('')
 
     const [convertResult, setConvertResult] = useState<ConvertResultType[]>([])
-    const {modalActive, handleClose, handleActive} = useModal(false);
 
 
     const columnMap: { [key: string]: string } = {
@@ -64,7 +62,7 @@ const Form: React.FC<FormType> = (props) => {
             fetchData();
         }
 
-    }, [docUrlID]) // todo нужно добавить валидацию для инпутов для проверки ссылки на sheet и docs
+    }, [docUrlID]) // todo
 
 
     useEffect(() => {
@@ -112,13 +110,7 @@ const Form: React.FC<FormType> = (props) => {
         setDocLink(event.target.value);
     };
 
-    const handlePreviewClick = () => {
-        handleActive()
-    };
 
-    const handleDownloadClick = useCallback(() => {
-        handleActive()
-    }, [docLink, sheetLink]);
 
     return (
         <div>
@@ -133,17 +125,15 @@ const Form: React.FC<FormType> = (props) => {
                 </RBForm.Group>
             </RBForm>
             <div className="d-flex justify-content-end mt-4 m-5">
-                <Button variant="light" onClick={handlePreviewClick}>
+                {convertResult.length === 0 && <Button variant="light">
                     Предварительный просмотр
-                </Button>
-
-                {convertResult.length === 0 && <Button variant="light" onClick={handleDownloadClick}>
-                    Заполните поля
                 </Button>}
-
+                {convertResult.length === 0 && <Button variant="light">
+                    Заполните поля
+                </Button>
+                }
                 {convertResult.length > 0 && sheetUrlID &&
-                <GoogleSheetData handleDownloadClick={handleDownloadClick} sheetUrlId={sheetUrlID}
-                                 arrayOfDocTemplate={convertResult}/>}
+                <GoogleSheetData sheetUrlId={sheetUrlID} arrayOfDocTemplate={convertResult}/>}
             </div>
         </div>
     );

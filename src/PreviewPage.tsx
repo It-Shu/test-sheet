@@ -1,6 +1,6 @@
 import React, {FC} from 'react';
 import {Col, Container, Image, Row, Table} from "react-bootstrap";
-import {MyData} from "./google-docs";
+import {MyData} from "./GoogleSheetData";
 
 type PreviewPageTypes = {
     secondSheetData: MyData[]
@@ -41,7 +41,6 @@ const PreviewPage: FC<PreviewPageTypes> = (props) => {
 
     return (
         <div>
-            <h1>Данные таблицы:</h1>
 
             <div>
                 {renderElementsFromData(props.firstSheetData)}
