@@ -80,7 +80,7 @@ const GoogleSheetData: FC<GoogleSheetDataTypes> = React.memo((props) => {
         };
         fetchGoogleSheetData()
 
-    }, [props.sheetUrlId]);
+    }, [props.sheetUrlId, props.arrayOfDocTemplate]);
 
     let nullIndex = firstSheetData.findIndex(item => item === undefined);
 

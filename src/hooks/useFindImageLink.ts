@@ -2,14 +2,12 @@ import { SheetDataType } from "../GoogleSheetData";
 import { useMemo } from "react";
 
 export const useFindImageLink = (sheetData: SheetDataType[]) => {
-
     const memoizedFindImageLink = useMemo(() => {
-        const cache = new Map();
+        let lastFoundLink = "";
 
         return (data: SheetDataType[]): string => {
-            const cacheKey = JSON.stringify(data);
-            if (cache.has(cacheKey)) {
-                return cache.get(cacheKey) || "";
+            if (lastFoundLink !== "") {
+                return lastFoundLink;
             }
 
             for (const row of data) {
@@ -23,16 +21,17 @@ export const useFindImageLink = (sheetData: SheetDataType[]) => {
                         (cell) => typeof cell === "string" && cell.startsWith("http")
                     );
                     if (link) {
-                        cache.set(cacheKey, link);
+                        lastFoundLink = link;
                         return link;
                     }
                 }
             }
-            cache.set(cacheKey, "");
+
             return "";
         };
-    }, [sheetData]);
+    }, []);
 
     const imageLink = memoizedFindImageLink(sheetData);
     return { imageLink };
 };
+
