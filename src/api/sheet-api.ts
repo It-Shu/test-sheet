@@ -9,6 +9,6 @@ export const SheetApi = {
         return axios.get(url);
     },
     getImageLink (url: string) {
-        return axios.get(url, { responseType: 'arraybuffer' });
+        return axios.get(url, { responseType: "arraybuffer" });
     }
 }

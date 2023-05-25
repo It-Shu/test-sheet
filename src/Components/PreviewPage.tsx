@@ -1,8 +1,8 @@
-import React, {FC} from 'react';
+import React, {FC} from "react";
 import {Col, Container, Row, Table} from "react-bootstrap";
 import {SheetDataType} from "./GoogleSheetData";
-import {useFindImageLink} from "./hooks/useFindImageLink";
-import {useDocNumberFinder} from "./hooks/useDocNumberFinder";
+import {useFindImageLink} from "../hooks/useFindImageLink";
+import {useDocNumberFinder} from "../hooks/useDocNumberFinder";
 
 type PreviewPageTypes = {
     secondSheetData: SheetDataType[]
@@ -15,15 +15,15 @@ const PreviewPage: FC<PreviewPageTypes> = React.memo((props) => {
     const {documentNumber} = useDocNumberFinder(props.firstSheetData)
 
     const renderElementsFromData = (data: SheetDataType[]) => {
-        let projectNumber = '';
+        let projectNumber = "";
         const elements = data.map((item, index) => {
-            if (item && typeof item[0] === 'string') {
-                if (item[0].startsWith('http')) {
+            if (item && typeof item[0] === "string") {
+                if (item[0].startsWith("http")) {
                     return null;
                 } else if (item[0] === documentNumber) {
                     projectNumber = item[0];
                 } else {
-                    const content = item[0] || '';
+                    const content = item[0] || "";
                     return <div key={index}>{content}</div>;
                 }
             }

@@ -1,8 +1,9 @@
-import React, {useEffect, useState} from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import {Form as RBForm, Button} from 'react-bootstrap';
-import {SheetApi} from "./api/sheet-api";
+import React, {useEffect, useState} from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import {Form as RBForm} from "react-bootstrap";
+import {SheetApi} from "../api/sheet-api";
 import GoogleSheetData from "./GoogleSheetData"
+import FakeButtons from "./FakeButtons";
 
 export type ConvertResultType = {
     list: string,
@@ -27,13 +28,13 @@ const columnMap: { [key: string]: string } = {
 
 const Form: React.FC = React.memo(() => {
 
-    const [sheetLink, setSheetLink] = useState('');
-    const [docLink, setDocLink] = useState('');
+    const [sheetLink, setSheetLink] = useState("");
+    const [docLink, setDocLink] = useState("");
 
     const [arrayOfTemplateVariables, setArrayOfTemplateVariables] = useState<string[]>([])
 
-    const [docUrlID, setDocUrlID] = useState<string | null>('')
-    const [sheetUrlID, setSheetUrlID] = useState<string | null>('')
+    const [docUrlID, setDocUrlID] = useState<string | null>("")
+    const [sheetUrlID, setSheetUrlID] = useState<string | null>("")
 
     const [finalTemplateArr, setFinalTemplateArr] = useState<ConvertResultType[]>([])
     const [errorDoc, setErrorDoc] = useState<string | null>(null)
@@ -49,7 +50,7 @@ const Form: React.FC = React.memo(() => {
                     setArrayOfTemplateVariables(matches.map((match: string) => match.substring(1, match.length - 1)));
                 }
             } catch (error) {
-                setErrorDoc('Ошибка обработки документа')
+                setErrorDoc("Ошибка обработки документа")
             }
         };
 
@@ -119,19 +120,13 @@ const Form: React.FC = React.memo(() => {
                     <RBForm.Control type="text" value={docLink} onChange={handleDocLinkChange}/>
                 </RBForm.Group>
             </RBForm>
+
+            {finalTemplateArr.length === 0 && <FakeButtons preViewButtonTitle={"Предварительный просмотр"} loadButtonTitle={"Заполните поля"} />}
+
+            {finalTemplateArr.length > 0 && sheetUrlID &&
+            <GoogleSheetData sheetLink={sheetLink} sheetUrlId={sheetUrlID} arrayOfDocTemplate={finalTemplateArr}/>}
+
             {!arrayOfTemplateVariables && errorDoc}
-            <div className="d-flex align-self-end m-5 flex-lg-row flex-md-row flex-sm-row flex-column">
-                {finalTemplateArr.length === 0 && <div>
-                    <Button variant="light" className="me-sm-3 me-md-3 me-lg-3 mb-2">
-                        Предварительный просмотр
-                    </Button>
-                    <Button variant="light" className="mb-2">
-                        Заполните поля
-                    </Button>
-                </div>}
-                {finalTemplateArr.length > 0 && sheetUrlID &&
-                <GoogleSheetData sheetLink={sheetLink} sheetUrlId={sheetUrlID} arrayOfDocTemplate={finalTemplateArr}/>}
-            </div>
         </div>
     );
 });
