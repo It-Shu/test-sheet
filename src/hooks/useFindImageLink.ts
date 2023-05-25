@@ -1,4 +1,4 @@
-import { SheetDataType } from "../GoogleSheetData";
+import { SheetDataType } from "../Components/GoogleSheetData";
 import { useMemo } from "react";
 
 export const useFindImageLink = (sheetData: SheetDataType[]) => {

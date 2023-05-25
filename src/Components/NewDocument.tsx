@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState} from "react";
 import {
     Document,
     HeadingLevel,
@@ -9,13 +9,13 @@ import {
     TableCell,
     TableRow,
     TextRun,
-} from 'docx';
-import {SheetDataType} from './GoogleSheetData';
-import {saveAs} from 'file-saver';
+} from "docx";
+import {SheetDataType} from "./GoogleSheetData";
+import {saveAs} from "file-saver";
 import {Button} from "react-bootstrap";
-import {SheetApi} from "./api/sheet-api";
-import {useDocNumberFinder} from "./hooks/useDocNumberFinder";
-import {useFindImageLink} from "./hooks/useFindImageLink";
+import {SheetApi} from "../api/sheet-api";
+import {useDocNumberFinder} from "../hooks/useDocNumberFinder";
+import {useFindImageLink} from "../hooks/useFindImageLink";
 
 type NewDocumentProps = {
     firstSheetData: SheetDataType[];
@@ -24,6 +24,7 @@ type NewDocumentProps = {
 
 const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
     const [imageData, setImageData] = useState<Uint8Array | undefined>(undefined);
+    const [errorLoadImage, setErrorLoadImage] = useState<string>("");
 
     const {imageLink} = useFindImageLink(props.firstSheetData)
     const {documentNumber} = useDocNumberFinder(props.firstSheetData)
@@ -36,7 +37,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
                     const imageArrayBuffer = new Uint8Array(response.data);
                     setImageData(imageArrayBuffer);
                 } catch (error) {
-                    console.error('Failed to load image:', error);
+                    setErrorLoadImage("Ошибка загрузки изображения")
                 }
             }
         };
@@ -52,7 +53,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
 
         if (documentNumber) {
             const numberParagraph = new Paragraph({
-                children: [new TextRun({text: 'Номер документа: ', bold: true}), new TextRun({
+                children: [new TextRun({text: "Номер документа: ", bold: true}), new TextRun({
                     text: documentNumber,
                     bold: true
                 })],
@@ -62,10 +63,10 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
 
         for (const row of props.firstSheetData) {
             if (Array.isArray(row)) {
-                const data = row.filter((cell) => typeof cell === 'string' && !cell.startsWith('http') && cell !== documentNumber);
+                const data = row.filter((cell) => typeof cell === "string" && !cell.startsWith("http") && cell !== documentNumber);
                 if (data.length > 0) {
                     const paragraph = new Paragraph({
-                        text: data.join(', '),
+                        text: data.join(", "),
                     });
                     children.push(paragraph);
                 }
@@ -89,7 +90,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
 
         children.push(
             new Paragraph({
-                text: 'Первая таблица',
+                text: "Первая таблица",
                 heading: HeadingLevel.HEADING_1,
                 spacing: {before: 200, after: 200},
             })
@@ -100,7 +101,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
 
         children.push(
             new Paragraph({
-                text: 'Вторая таблица',
+                text: "Вторая таблица",
                 heading: HeadingLevel.HEADING_1,
                 spacing: {before: 200, after: 200},
             })
@@ -116,7 +117,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
             .map((row) => {
                 if (Array.isArray(row)) {
                     const cells = row.map((cell: string | null) => {
-                        const cellText = cell ? cell : '';
+                        const cellText = cell ? cell : "";
                         return new TableCell({
                             children: [new Paragraph({text: cellText})],
                             columnSpan: 1,
@@ -150,18 +151,19 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
             });
 
             Packer.toBlob(doc).then((blob) => {
-                saveAs(blob, 'NewDocument.docx');
+                saveAs(blob, "NewDocument.docx");
             });
         }
     };
 
 
     return (
-        <div>
+        <>
             <Button variant="light" onClick={handleExport} className="mb-2">
                 Загрузить файл
             </Button>
-        </div>
+            {!imageData && errorLoadImage && <div>{errorLoadImage}</div>}
+        </>
     );
 });
 
