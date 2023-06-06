@@ -58,7 +58,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
                     bold: true
                 })],
             });
-            children.push(numberParagraph);
+           children.push(numberParagraph);
         }
 
         for (const row of props.firstSheetData) {
@@ -99,19 +99,26 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
         const firstTable = generateTable(props.secondSheetData[0]);
         children.push(firstTable);
 
-        children.push(
-            new Paragraph({
-                text: "Вторая таблица",
-                heading: HeadingLevel.HEADING_1,
-                spacing: {before: 200, after: 200},
-            })
-        );
 
-        const secondTable = generateTable(props.secondSheetData[1]);
-        children.push(secondTable);
 
-        return children;
+        if (props.secondSheetData[1]) {
+            children.push(
+                new Paragraph({
+                    text: "Вторая таблица",
+                    heading: HeadingLevel.HEADING_1,
+                    spacing: {before: 200, after: 200},
+                })
+            );
+
+            const secondTable = generateTable(props.secondSheetData[1]);
+            children.push(secondTable);
+
+            return children;
+        }
+
+        return children
     };
+
     const generateTable = (data: SheetDataType): Table => {
         const rows = data
             .map((row) => {
@@ -140,7 +147,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
     };
 
     const handleExport = () => {
-        if (imageData) {
+        // if (imageData) {
             const doc = new Document({
                 sections: [
                     {
@@ -153,7 +160,7 @@ const NewDocument: React.FC<NewDocumentProps> = React.memo((props) => {
             Packer.toBlob(doc).then((blob) => {
                 saveAs(blob, "NewDocument.docx");
             });
-        }
+        // }
     };
 
 

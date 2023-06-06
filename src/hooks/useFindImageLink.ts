@@ -2,6 +2,7 @@ import { SheetDataType } from "../Components/GoogleSheetData";
 import { useMemo } from "react";
 
 export const useFindImageLink = (sheetData: SheetDataType[]) => {
+
     const memoizedFindImageLink = useMemo(() => {
         let lastFoundLink = "";
 
@@ -9,7 +10,6 @@ export const useFindImageLink = (sheetData: SheetDataType[]) => {
             if (lastFoundLink !== "") {
                 return lastFoundLink;
             }
-
             for (const row of data) {
                 if (
                     Array.isArray(row) &&

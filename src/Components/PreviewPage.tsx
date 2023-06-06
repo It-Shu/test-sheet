@@ -1,5 +1,5 @@
 import React, {FC} from "react";
-import {Col, Container, Row, Table} from "react-bootstrap";
+import {Table} from "react-bootstrap";
 import {SheetDataType} from "./GoogleSheetData";
 import {useFindImageLink} from "../hooks/useFindImageLink";
 import {useDocNumberFinder} from "../hooks/useDocNumberFinder";
@@ -15,36 +15,24 @@ const PreviewPage: FC<PreviewPageTypes> = React.memo((props) => {
     const {documentNumber} = useDocNumberFinder(props.firstSheetData)
 
     const renderElementsFromData = (data: SheetDataType[]) => {
-        let projectNumber = "";
-        const elements = data.map((item, index) => {
-            if (item && typeof item[0] === "string") {
-                if (item[0].startsWith("http")) {
-                    return null;
-                } else if (item[0] === documentNumber) {
-                    projectNumber = item[0];
-                } else {
-                    const content = item[0] || "";
-                    return <div key={index}>{content}</div>;
+        let othersData: (string | null)[] = [];
+        data.forEach((item) => {
+            if (item) {
+                const filteredArrayOfCells = item.filter(cell => typeof cell === "string" && cell !== documentNumber && cell !== imageLink);
+                if (filteredArrayOfCells.length > 0) {
+                    othersData.push(...filteredArrayOfCells);
                 }
             }
-            return null;
         });
 
-        if (projectNumber) {
-            elements.unshift(<div key="projectNumber">Номер Документа: {projectNumber}</div>);
-        }
-
         return (
-            <Container>
-                <Row>
-                    <Col>{elements}</Col>
-                </Row>
-            </Container>
+            <>{othersData.map((item, index) => <div key={index}>{item}</div>)}</>
         );
     };
 
     return (
         <div>
+            <div>Номер Документа: {documentNumber}</div>
             <div>{renderElementsFromData(props.firstSheetData)}</div>
             <img src={imageLink} alt="image"/>
             <div>
@@ -85,3 +73,32 @@ const PreviewPage: FC<PreviewPageTypes> = React.memo((props) => {
 });
 
 export default PreviewPage;
+
+// const renderElementsFromData = (data: SheetDataType[]) => {
+//         let projectNumber = "";
+//         const elements = data.map((item, index) => {
+//             if (item && typeof item[0] === "string") {
+//                 if (item[0].startsWith("http")) {
+//                     return null;
+//                 } else if (item[0] === documentNumber) {
+//                     projectNumber = item[0];
+//                 } else {
+//                     const content = item[0] || "";
+//                     return <div key={index}>{content}</div>;
+//                 }
+//             }
+//             return null;
+//         });
+//
+//         if (projectNumber) {
+//             elements.unshift(<div key="projectNumber">Номер Документа: {projectNumber}</div>);
+//         }
+//
+//         return (
+//             <Container>
+//                 <Row>
+//                     <Col>{elements}</Col>
+//                 </Row>
+//             </Container>
+//         );
+//     };

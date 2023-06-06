@@ -26,7 +26,7 @@ const columnMap: { [key: string]: string } = {
     "10": "J",
 };
 
-const Form: React.FC = React.memo(() => {
+const Form: React.FC = () => {
 
     const [sheetLink, setSheetLink] = useState("");
     const [docLink, setDocLink] = useState("");
@@ -40,7 +40,7 @@ const Form: React.FC = React.memo(() => {
     const [errorDoc, setErrorDoc] = useState<string | null>(null)
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchData = async () => { // тут с нэймингом просто не обратил внимание, можно назвать getTextFromDocs
             try {
                 const response = await SheetApi.getDocsData(`https://docs.google.com/document/d/${docUrlID}/export?format=txt`);
                 const regex = /{([^{}]+)}/g;
@@ -78,7 +78,7 @@ const Form: React.FC = React.memo(() => {
 
     useEffect(() => {
 
-        const extractIdFromLink = (link: string, regex: RegExp) => {
+        const extractIdFromLink = (link: string, regex: RegExp) => { // можно сделать хуком для переиспользования
             const matches = link.match(regex);
             return matches ? matches[1] : null;
         };
@@ -129,6 +129,6 @@ const Form: React.FC = React.memo(() => {
             {!arrayOfTemplateVariables && errorDoc}
         </div>
     );
-});
+};
 
 export default Form;
